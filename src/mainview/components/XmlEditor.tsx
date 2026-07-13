@@ -59,8 +59,8 @@ export default function XmlEditor({ value, onChange, readOnly }: XmlEditorProps)
 
   useEffect(() => {
     if (!container.current) return;
-    container.current.classList.toggle("dark", theme === "dark");
     container.current.classList.toggle("light", theme !== "dark");
+    container.current.classList.toggle("dark", theme === "dark");
   }, [theme]);
 
   return (

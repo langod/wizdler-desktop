@@ -17,8 +17,8 @@
 }
 
 .codejar-editor.light {
-  background: #f5f2f0;
-  color: black;
+  background: #f3f4f6;
+  color: #111827;
 }
 
 .codejar-editor.dark {
@@ -98,4 +98,29 @@
 
 .codejar-editor.dark .token.entity {
   cursor: help;
+}
+
+/* Line numbers gutter — the gutter is a sibling of .codejar-editor inside
+   .codejar-wrap, so theme via html.dark (set by ThemeProvider) and override
+   the inline styles set by codejar-linenumbers for proper contrast. */
+.codejar-linenumbers-inner-wrap {
+  background: transparent !important;
+}
+
+.codejar-linenumbers {
+  text-align: center;
+  background-color: rgba(15, 23, 42, 0.05) !important;
+}
+
+.codejar-linenumber {
+  text-align: center;
+  color: #1f2937 !important;
+}
+
+html.dark .codejar-linenumbers {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+html.dark .codejar-linenumber {
+  color: #8b949e !important;
 }
