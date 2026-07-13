@@ -1,0 +1,101 @@
+@import "prismjs/themes/prism.css";
+
+.codejar-wrap {
+  height: 100%;
+}
+
+.codejar-editor {
+  outline: none;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  word-wrap: normal;
+  tab-size: 2;
+  -webkit-hyphens: none;
+  hyphens: none;
+  overflow: auto;
+}
+
+.codejar-editor.light {
+  background: #f5f2f0;
+  color: black;
+}
+
+.codejar-editor.dark {
+  color: #f8f8f2;
+  background: #272822;
+  text-shadow: 0 1px rgba(0, 0, 0, 0.3);
+}
+
+.codejar-editor.dark .token.comment,
+.codejar-editor.dark .token.prolog,
+.codejar-editor.dark .token.doctype,
+.codejar-editor.dark .token.cdata {
+  color: #8292a2;
+}
+
+.codejar-editor.dark .token.punctuation {
+  color: #f8f8f2;
+}
+
+.codejar-editor.dark .token.namespace {
+  opacity: 0.7;
+}
+
+.codejar-editor.dark .token.property,
+.codejar-editor.dark .token.tag,
+.codejar-editor.dark .token.constant,
+.codejar-editor.dark .token.symbol,
+.codejar-editor.dark .token.deleted {
+  color: #f92672;
+}
+
+.codejar-editor.dark .token.boolean,
+.codejar-editor.dark .token.number {
+  color: #ae81ff;
+}
+
+.codejar-editor.dark .token.selector,
+.codejar-editor.dark .token.attr-name,
+.codejar-editor.dark .token.string,
+.codejar-editor.dark .token.char,
+.codejar-editor.dark .token.builtin,
+.codejar-editor.dark .token.inserted {
+  color: #a6e22e;
+}
+
+.codejar-editor.dark .token.operator,
+.codejar-editor.dark .token.entity,
+.codejar-editor.dark .token.url,
+.codejar-editor.dark .token.variable {
+  color: #f8f8f2;
+}
+
+.codejar-editor.dark .token.atrule,
+.codejar-editor.dark .token.attr-value,
+.codejar-editor.dark .token.function,
+.codejar-editor.dark .token.class-name {
+  color: #e6db74;
+}
+
+.codejar-editor.dark .token.keyword {
+  color: #66d9ef;
+}
+
+.codejar-editor.dark .token.regex,
+.codejar-editor.dark .token.important {
+  color: #fd971f;
+}
+
+.codejar-editor.dark .token.important,
+.codejar-editor.dark .token.bold {
+  font-weight: bold;
+}
+
+.codejar-editor.dark .token.italic {
+  font-style: italic;
+}
+
+.codejar-editor.dark .token.entity {
+  cursor: help;
+}
