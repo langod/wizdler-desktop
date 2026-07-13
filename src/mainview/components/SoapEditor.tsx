@@ -6,7 +6,7 @@ import {
   useState,
   type FormEvent,
 } from "react";
-import type { OperationContext } from "../lib/types";
+import type { OperationContext, SavedRequest } from "../lib/types";
 import { generateRequest } from "../lib/wsdl";
 import { fetchUrlWithResponse } from "../lib/fetch";
 import { useLocalStorage } from "../lib/useLocalStorage";
@@ -18,6 +18,8 @@ import vkbeautify from "../lib/vkbeautify";
 interface SoapEditorProps {
   ctx: OperationContext;
   onBack: () => void;
+  initialValues?: Pick<SavedRequest, "method" | "requestUrl" | "headers" | "requestBody">;
+  onSave?: (data: Omit<SavedRequest, "id" | "createdAt">) => void;
 }
 
 const METHODS = ["POST", "GET", "PUT", "PATCH", "DELETE", "OPTIONS"];
@@ -28,12 +30,12 @@ interface HeaderEntry {
   value: string;
 }
 
-export default function SoapEditor({ ctx, onBack }: SoapEditorProps) {
-  const initialRequest = useMemo(() => generateRequest(ctx), [ctx]);
-  const [method, setMethod] = useState(initialRequest.method);
-  const [url, setUrl] = useState(initialRequest.url);
-  const [requestBody, setRequestBody] = useState(initialRequest.body);
-  const [wlHeaders, setWlHeaders] = useLocalStorage<HeaderEntry[]>("wizdler_headers", []);
+export default function SoapEditor({ ctx, onBack, initialValues, onSave }: SoapEditorProps) {
+  const initialRequest = useMemo(() => generateRequest(ctx), []);
+  const [method, setMethod] = useState(initialValues?.method ?? initialRequest.method);
+  const [url, setUrl] = useState(initialValues?.requestUrl ?? initialRequest.url);
+  const [requestBody, setRequestBody] = useState(initialValues?.requestBody ?? initialRequest.body);
+  const [wlHeaders, setWlHeaders] = useLocalStorage<HeaderEntry[]>("wizdler_headers", initialValues?.headers ?? []);
   const [showHeaders, setShowHeaders] = useState(false);
   const [responseBody, setResponseBody] = useState("");
   const [activeTab, setActiveTab] = useState("request");
@@ -42,12 +44,15 @@ export default function SoapEditor({ ctx, onBack }: SoapEditorProps) {
 
   useEffect(() => {
     const r = generateRequest(ctx);
-    setMethod(r.method);
-    setUrl(r.url);
-    setRequestBody(r.body);
+    const iv = initialValues;
+    setMethod(iv?.method ?? r.method);
+    setUrl(iv?.requestUrl ?? r.url);
+    setRequestBody(iv?.requestBody ?? r.body);
+    if (iv?.headers) setWlHeaders(iv.headers);
     setResponseBody("");
+    setStatus("");
     setActiveTab("request");
-  }, [ctx]);
+  }, [ctx, initialValues, setWlHeaders]);
 
   const builtHeaders = useMemo(() => {
     const h: Record<string, string> = {};
@@ -101,12 +106,34 @@ export default function SoapEditor({ ctx, onBack }: SoapEditorProps) {
 
         setResponseBody(formatted);
         setStatus(ok ? "" : "Error.");
+        onSave?.({
+          wsdlUrl: ctx.wsdl.url,
+          serviceName: ctx.service.name.local,
+          operationName: ctx.portTypeOperation.name.local,
+          method,
+          requestUrl: url,
+          headers: wlHeaders,
+          requestBody,
+          responseBody: formatted,
+          status: ok ? "" : "Error.",
+        });
       } catch (err: unknown) {
         setResponseBody("Failed to send request: " + (err as Error).message);
         setStatus("Error.");
+        onSave?.({
+          wsdlUrl: ctx.wsdl.url,
+          serviceName: ctx.service.name.local,
+          operationName: ctx.portTypeOperation.name.local,
+          method,
+          requestUrl: url,
+          headers: wlHeaders,
+          requestBody,
+          responseBody: "",
+          status: "Error.",
+        });
       }
     },
-    [url, method, builtHeaders, requestBody]
+    [url, method, builtHeaders, requestBody, wlHeaders, onSave, ctx]
   );
 
   useKeyboardShortcuts({

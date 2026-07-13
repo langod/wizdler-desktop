@@ -148,6 +148,20 @@ export interface GeneratedRequest {
   body: string;
 }
 
+export interface SavedRequest {
+  id?: number;
+  wsdlUrl: string;
+  serviceName: string;
+  operationName: string;
+  method: string;
+  requestUrl: string;
+  headers: Array<{ id: number; key: string; value: string }>;
+  requestBody: string;
+  responseBody: string;
+  status: string;
+  createdAt: number;
+}
+
 export interface XmlQualifiedName {
   ns: string;
   localName: string;
