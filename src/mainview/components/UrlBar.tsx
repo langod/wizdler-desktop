@@ -5,9 +5,10 @@ interface UrlBarProps {
   onLoad: (url: string) => void;
   loading: boolean;
   initialUrl?: string;
+  history?: string[];
 }
 
-function UrlBarInner({ onLoad, loading, initialUrl }: UrlBarProps, ref: Ref<HTMLInputElement>) {
+function UrlBarInner({ onLoad, loading, initialUrl, history }: UrlBarProps, ref: Ref<HTMLInputElement>) {
   const [url, setUrl] = useState(initialUrl ?? "");
   const { theme, toggleTheme } = useTheme();
 
@@ -27,8 +28,14 @@ function UrlBarInner({ onLoad, loading, initialUrl }: UrlBarProps, ref: Ref<HTML
         value={url}
         onChange={(e) => setUrl(e.target.value)}
         placeholder="Enter WSDL URL..."
+        list="wsdl-history"
         className="flex-1 rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 transition-colors placeholder:text-gray-400 focus:border-blue-400 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:border-blue-500"
       />
+      <datalist id="wsdl-history">
+        {history?.map((u) => (
+          <option key={u} value={u} />
+        ))}
+      </datalist>
       <button
         type="submit"
         disabled={loading || !url.trim()}

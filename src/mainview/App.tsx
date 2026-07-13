@@ -3,6 +3,7 @@ import type { OperationContext, SavedRequest, WsdlData } from "./lib/types";
 import { parseWsdl, getOperations } from "./lib/wsdl";
 import { fetchUrl } from "./lib/fetch";
 import { getAllRequests, saveRequest } from "./lib/db";
+import { useLocalStorage } from "./lib/useLocalStorage";
 import useKeyboardShortcuts from "./lib/useKeyboardShortcuts";
 import UrlBar from "./components/UrlBar";
 import WsdlTree from "./components/WsdlTree";
@@ -20,7 +21,15 @@ export default function App() {
   const [screen, setScreen] = useState<Screen | null>(null);
   const [sidebarRefreshTrigger, setSidebarRefreshTrigger] = useState(0);
   const [lastLoadedWsdl, setLastLoadedWsdl] = useState<{ url: string; wsdl: WsdlData; operations: OperationContext[] } | null>(null);
+  const [wsdlHistory, setWsdlHistory] = useLocalStorage<string[]>("wizdler_wsdl_history", []);
   const urlInputRef = useRef<HTMLInputElement>(null);
+
+  const recordWsdlHistory = useCallback(
+    (url: string) => {
+      setWsdlHistory((prev) => [url, ...prev.filter((u) => u !== url)].slice(0, 10));
+    },
+    [setWsdlHistory],
+  );
 
   useEffect(() => {
     getAllRequests().then((requests) => {
@@ -52,11 +61,12 @@ export default function App() {
 
       setLastUrl(url);
       setLastLoadedWsdl({ url, wsdl, operations });
+      recordWsdlHistory(url);
       setScreen({ name: "tree", wsdl, operations });
     } catch (err: unknown) {
       setScreen({ name: "error", message: (err as Error).message });
     }
-  }, [setLastUrl]);
+  }, [setLastUrl, recordWsdlHistory]);
 
   const handleDownloadWsdl = useCallback(async (_serviceName: string) => {
     // TODO: implement ZIP download using jszip
@@ -87,6 +97,7 @@ export default function App() {
         operations = getOperations(wsdl);
         setLastUrl(req.wsdlUrl);
         setLastLoadedWsdl({ url: req.wsdlUrl, wsdl, operations });
+        recordWsdlHistory(req.wsdlUrl);
       } catch {
         setScreen({ name: "error", message: "Failed to reload WSDL for saved request" });
         return;
@@ -117,11 +128,11 @@ export default function App() {
         requestBody: req.requestBody,
       },
     });
-  }, [lastLoadedWsdl, setLastUrl]);
+  }, [lastLoadedWsdl, setLastUrl, recordWsdlHistory]);
 
   return (
     <div className="flex h-screen flex-col bg-white text-gray-900 transition-colors dark:bg-[#1a1b1e] dark:text-gray-100">
-      <UrlBar ref={urlInputRef} onLoad={handleLoad} loading={screen?.name === "loading"} initialUrl={lastUrl} />
+      <UrlBar ref={urlInputRef} onLoad={handleLoad} loading={screen?.name === "loading"} initialUrl={lastUrl} history={wsdlHistory} />
 
       <div className="flex flex-1 overflow-hidden">
         <Sidebar
