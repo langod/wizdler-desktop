@@ -1,5 +1,6 @@
 import vkbeautify from "./vkbeautify";
 import { XmlSampleGenerator } from "./xmlSampleGenerator";
+import { fetchUrl } from "./fetch";
 import type {
   WsdlData,
   Message,
@@ -26,12 +27,21 @@ const ns = {
 };
 
 function getDirectory(url: string): string {
-  return url.substring(0, url.lastIndexOf("/"));
+  const base = url.substring(0, url.lastIndexOf("/"));
+  return base.length ? base : url;
 }
 
 function combineURL(baseURL: string, url: string): string {
   if (/^(?:https?|file):\/\/|^\//.test(url)) return url;
   return baseURL + "/" + url.replace(/^\//, "");
+}
+
+function getImportCandidates(baseURL: string, location: string): string[] {
+  if (/^(?:https?|file):\/\/|^\//.test(location)) return [location];
+  const candidates = new Set<string>();
+  candidates.add(combineURL(getDirectory(baseURL), location));
+  candidates.add(combineURL(baseURL, location));
+  return [...candidates];
 }
 
 function formatXml(doc: XMLDocument | null): string {
@@ -208,27 +218,38 @@ function parseSoapInputOrOutput(io: Element, soapNs: string): SoapIO {
 
 async function resolveImport(baseURL: string, location: string, _ns: string): Promise<WsdlImport> {
   if (!location) throw new Error("Missing location.");
-  const url = combineURL(baseURL, location);
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("Failed to load data from url: " + url);
-  const text = await response.text();
-  return {
-    location: url,
-    ns: _ns,
-    text,
-    XML: new DOMParser().parseFromString(text, "text/xml"),
-  };
+  const candidates = getImportCandidates(baseURL, location);
+  let lastError: unknown;
+  for (const url of candidates) {
+    try {
+      const text = await fetchUrl(url);
+      return {
+        location: url,
+        ns: _ns,
+        text,
+        XML: new DOMParser().parseFromString(text, "text/xml"),
+      };
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  const tried = candidates.join(", ");
+  throw new Error(`Failed to load schema import "${location}" from: ${tried}` + (lastError ? ` (${lastError})` : ""));
 }
 
 async function resolveImports(baseURL: string, imports: Element[]): Promise<WsdlImport[]> {
   if (!imports.length) return [];
-  return Promise.all(
-    imports.map((imp) => {
-      const loc = imp.getAttributeNS(null, "schemaLocation") ?? "";
-      const importNs = imp.getAttributeNS(null, "namespace") ?? "";
-      return resolveImport(baseURL, loc, importNs);
-    })
-  );
+  const resolved: WsdlImport[] = [];
+  for (const imp of imports) {
+    const loc = imp.getAttributeNS(null, "schemaLocation") ?? "";
+    const importNs = imp.getAttributeNS(null, "namespace") ?? "";
+    try {
+      resolved.push(await resolveImport(baseURL, loc, importNs));
+    } catch (err) {
+      console.warn("[wizdler] Skipping unresolvable schema import:", (err as Error).message);
+    }
+  }
+  return resolved;
 }
 
 class WsdlParser {
