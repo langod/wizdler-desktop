@@ -1,7 +1,7 @@
 import type { SavedRequest } from "./types";
 
 const DB_NAME = "wizdler-db";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_NAME = "requests";
 
 function openDb(): Promise<IDBDatabase> {
@@ -15,6 +15,12 @@ function openDb(): Promise<IDBDatabase> {
           autoIncrement: true,
         });
         store.createIndex("createdAt", "createdAt", { unique: false });
+        store.createIndex("favorited", "favorited", { unique: false });
+      } else {
+        const store = req.transaction!.objectStore(STORE_NAME);
+        if (!store.indexNames.contains("favorited")) {
+          store.createIndex("favorited", "favorited", { unique: false });
+        }
       }
     };
     req.onsuccess = () => resolve(req.result);
@@ -23,6 +29,61 @@ function openDb(): Promise<IDBDatabase> {
 }
 
 const MAX_HISTORY = 100;
+
+function isDuplicate(
+  a: Omit<SavedRequest, "id">,
+  b: SavedRequest
+): boolean {
+  return (
+    a.wsdlUrl === b.wsdlUrl &&
+    a.serviceName === b.serviceName &&
+    a.operationName === b.operationName &&
+    a.method === b.method &&
+    a.requestUrl === b.requestUrl &&
+    a.requestBody === b.requestBody
+  );
+}
+
+export async function upsertRequest(
+  data: Omit<SavedRequest, "id">
+): Promise<number> {
+  const db = await openDb();
+  const tx = db.transaction(STORE_NAME, "readonly");
+  const store = tx.objectStore(STORE_NAME);
+  const index = store.index("createdAt");
+
+  const existing = await new Promise<SavedRequest | undefined>((resolve, reject) => {
+    const req = index.openCursor(null, "prev");
+    req.onsuccess = () => {
+      const cursor = req.result;
+      if (cursor) {
+        if (isDuplicate(data, cursor.value)) {
+          resolve(cursor.value);
+          return;
+        }
+        cursor.continue();
+      } else {
+        resolve(undefined);
+      }
+    };
+    req.onerror = () => reject(req.error);
+  });
+
+  if (existing) {
+    existing.createdAt = Date.now();
+    existing.responseBody = data.responseBody;
+    existing.status = data.status;
+    const writeTx = db.transaction(STORE_NAME, "readwrite");
+    const writeStore = writeTx.objectStore(STORE_NAME);
+    return new Promise<number>((resolve, reject) => {
+      const req = writeStore.put(existing);
+      req.onsuccess = () => resolve(existing.id!);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  return saveRequest(data);
+}
 
 export async function saveRequest(
   data: Omit<SavedRequest, "id">
@@ -44,15 +105,15 @@ async function trimRequests(db: IDBDatabase): Promise<void> {
   const store = tx.objectStore(STORE_NAME);
   const index = store.index("createdAt");
 
-  const count = await new Promise<number>((resolve, reject) => {
+  const all = await new Promise<number>((resolve, reject) => {
     const req = index.count();
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
 
-  if (count <= MAX_HISTORY) return;
+  if (all <= MAX_HISTORY) return;
 
-  const excess = count - MAX_HISTORY;
+  const excess = all - MAX_HISTORY;
   const cursorReq = index.openCursor(null, "next");
   let deleted = 0;
 
@@ -63,8 +124,10 @@ async function trimRequests(db: IDBDatabase): Promise<void> {
         resolve();
         return;
       }
-      store.delete(cursor.primaryKey);
-      deleted++;
+      if (!cursor.value.favorited) {
+        store.delete(cursor.primaryKey);
+        deleted++;
+      }
       cursor.continue();
     };
     cursorReq.onerror = () => reject(cursorReq.error);
@@ -100,6 +163,26 @@ export async function deleteRequest(id: number): Promise<void> {
     const req = store.delete(id);
     req.onsuccess = () => resolve();
     req.onerror = () => reject(req.error);
+  });
+}
+
+export async function toggleFavorite(id: number): Promise<SavedRequest | null> {
+  const db = await openDb();
+  const tx = db.transaction(STORE_NAME, "readwrite");
+  const store = tx.objectStore(STORE_NAME);
+  return new Promise((resolve, reject) => {
+    const getReq = store.get(id);
+    getReq.onsuccess = () => {
+      const record = (getReq as IDBRequest<SavedRequest>).result;
+      if (!record) {
+        resolve(null);
+        return;
+      }
+      record.favorited = !record.favorited;
+      store.put(record);
+      resolve(record);
+    };
+    getReq.onerror = () => reject(getReq.error);
   });
 }
 

@@ -160,6 +160,7 @@ export interface SavedRequest {
   responseBody: string;
   status: string;
   createdAt: number;
+  favorited?: boolean;
 }
 
 export interface XmlQualifiedName {

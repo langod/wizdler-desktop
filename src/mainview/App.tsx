@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { OperationContext, SavedRequest, WsdlData } from "./lib/types";
 import { parseWsdl, getOperations } from "./lib/wsdl";
 import { fetchUrl } from "./lib/fetch";
-import { getAllRequests, saveRequest } from "./lib/db";
+import { getAllRequests, upsertRequest } from "./lib/db";
 import { useLocalStorage } from "./lib/useLocalStorage";
 import useKeyboardShortcuts from "./lib/useKeyboardShortcuts";
 import UrlBar from "./components/UrlBar";
@@ -78,7 +78,7 @@ export default function App() {
   }, []);
 
   const handleSaveRequest = useCallback(async (data: Omit<SavedRequest, "id" | "createdAt">) => {
-    await saveRequest({ ...data, createdAt: Date.now() });
+    await upsertRequest({ ...data, createdAt: Date.now() });
     setSidebarRefreshTrigger((n) => n + 1);
   }, []);
 

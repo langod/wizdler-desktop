@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import type { SavedRequest } from "../lib/types";
-import { getAllRequests, deleteRequest, clearRequests } from "../lib/db";
+import { getAllRequests, deleteRequest, clearRequests, toggleFavorite } from "../lib/db";
 
 interface SidebarProps {
   refreshTrigger: number;
@@ -18,17 +18,38 @@ function relativeTime(ts: number): string {
   return `${days}d ago`;
 }
 
+function sortRequests(requests: SavedRequest[]): SavedRequest[] {
+  return [...requests].sort((a, b) => {
+    if (a.favorited && !b.favorited) return -1;
+    if (!a.favorited && b.favorited) return 1;
+    return b.createdAt - a.createdAt;
+  });
+}
+
 export default function Sidebar({ refreshTrigger, onSelectRequest }: SidebarProps) {
   const [requests, setRequests] = useState<SavedRequest[]>([]);
 
   useEffect(() => {
-    getAllRequests().then(setRequests);
+    getAllRequests().then((r) => setRequests(sortRequests(r)));
   }, [refreshTrigger]);
 
   const handleDelete = useCallback(async (e: React.MouseEvent, id: number) => {
     e.stopPropagation();
     await deleteRequest(id);
     setRequests((prev) => prev.filter((r) => r.id !== id));
+  }, []);
+
+  const handleToggleFavorite = useCallback(async (e: React.MouseEvent, req: SavedRequest) => {
+    e.stopPropagation();
+    const updated = await toggleFavorite(req.id!);
+    if (updated) {
+      setRequests((prev) => {
+        if (!updated.favorited) {
+          return sortRequests(prev.filter((r) => r.id !== updated.id));
+        }
+        return sortRequests(prev.map((r) => (r.id === updated.id ? updated : r)));
+      });
+    }
   }, []);
 
   const handleClear = useCallback(async () => {
@@ -58,7 +79,7 @@ export default function Sidebar({ refreshTrigger, onSelectRequest }: SidebarProp
         {requests.map((req) => (
           <div
             key={req.id!}
-            className="group relative border-b border-gray-100 dark:border-gray-800"
+            className={`group relative border-b border-gray-100 dark:border-gray-800 ${req.favorited ? "bg-amber-50/50 dark:bg-amber-900/10" : ""}`}
           >
             <button
               onClick={() => onSelectRequest(req)}
@@ -90,12 +111,33 @@ export default function Sidebar({ refreshTrigger, onSelectRequest }: SidebarProp
                 {req.requestUrl}
               </div>
             </button>
-            <button
-              onClick={(e) => handleDelete(e, req.id!)}
-              className="absolute right-1 top-2 hidden rounded px-1 text-gray-400 transition-colors hover:bg-red-100 hover:text-red-500 group-hover:block dark:hover:bg-red-900/30 dark:hover:text-red-400"
-            >
-              &times;
-            </button>
+            <div className="absolute right-1 top-2 flex gap-0.5">
+              {req.favorited ? (
+                <button
+                  onClick={(e) => handleToggleFavorite(e, req)}
+                  className="rounded px-1 text-amber-500 transition-colors hover:bg-amber-100 hover:text-amber-600 dark:hover:bg-amber-900/30"
+                  title="Unfavorite (deletes request)"
+                >
+                  &#9733;
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={(e) => handleToggleFavorite(e, req)}
+                    className="hidden rounded px-1 text-gray-400 transition-colors hover:text-amber-500 group-hover:block dark:hover:text-amber-400"
+                    title="Favorite"
+                  >
+                    &#9734;
+                  </button>
+                  <button
+                    onClick={(e) => handleDelete(e, req.id!)}
+                    className="hidden rounded px-1 text-gray-400 transition-colors hover:bg-red-100 hover:text-red-500 group-hover:block dark:hover:bg-red-900/30 dark:hover:text-red-400"
+                  >
+                    &times;
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         ))}
       </div>
