@@ -1,4 +1,4 @@
-import { forwardRef, type FormEvent, useState, type Ref } from "react";
+import { forwardRef, type FormEvent, useState, type Ref, type ChangeEvent } from "react";
 import { useTheme } from "../lib/ThemeProvider";
 
 interface UrlBarProps {
@@ -12,9 +12,13 @@ function UrlBarInner({ onLoad, loading, initialUrl, history }: UrlBarProps, ref:
   const [url, setUrl] = useState(initialUrl ?? "");
   const { theme, toggleTheme } = useTheme();
 
+  const doLoad = (val: string) => {
+    if (val.trim()) onLoad(val.trim());
+  };
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (url.trim()) onLoad(url.trim());
+    doLoad(url);
   };
 
   return (
@@ -26,7 +30,11 @@ function UrlBarInner({ onLoad, loading, initialUrl, history }: UrlBarProps, ref:
         ref={ref}
         type="text"
         value={url}
-        onChange={(e) => setUrl(e.target.value)}
+        onChange={(e: ChangeEvent<HTMLInputElement>) => {
+          const val = e.target.value;
+          setUrl(val);
+          if (history?.includes(val)) doLoad(val);
+        }}
         placeholder="Enter WSDL URL..."
         list="wsdl-history"
         className="flex-1 rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 transition-colors placeholder:text-gray-400 focus:border-blue-400 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:border-blue-500"
