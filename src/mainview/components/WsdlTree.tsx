@@ -47,7 +47,7 @@ export default function WsdlTree({ wsdl, operations, onDownloadWsdl, onOpenOpera
   }
 
   return (
-    <div className="overflow-y-auto bg-white transition-colors dark:bg-[#1a1b1e]">
+    <div className="h-full flex-1 overflow-y-auto overflow-x-hidden bg-white transition-colors dark:bg-[#1a1b1e]">
       <ul>
         {wsdl.services.map((service) => {
           const serviceOps = serviceOpMap.get(service.name.full) ?? [];

@@ -20,7 +20,7 @@ export default function TreeItem({ label, icon, children, title, onClick, defaul
   return (
     <li className="w-full" title={title}>
       <span
-        className={`flex w-full cursor-default items-center gap-1.5 py-1.5 pl-3 pr-1 text-base transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${hasChildren ? "cursor-pointer" : "pl-8"}`}
+        className={`flex w-full items-center gap-1.5 py-1.5 pl-3 pr-1 text-base transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${hasChildren || onClick ? "cursor-pointer" : "cursor-default"} ${hasChildren ? "" : "pl-8"}`}
         onClick={hasChildren ? handleToggle : onClick}
       >
         {hasChildren && (
@@ -48,7 +48,7 @@ export default function TreeItem({ label, icon, children, title, onClick, defaul
           <span className="text-gray-800 transition-colors dark:text-gray-200">{label}</span>
         )}
       </span>
-      {hasChildren && expanded && <ul className="ml-4 w-full">{children}</ul>}
+      {hasChildren && expanded && <ul className="ml-4">{children}</ul>}
     </li>
   );
 }
