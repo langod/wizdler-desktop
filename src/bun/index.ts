@@ -99,7 +99,7 @@ const rpc = defineElectrobunRPC<WizdlerRPCSchema, "bun">("bun", {
 	},
 });
 
-new BrowserWindow({
+const win = new BrowserWindow({
 	title: "Wizdler Desktop",
 	url,
 	frame: {
@@ -110,5 +110,7 @@ new BrowserWindow({
 	},
 	rpc,
 });
+
+win.maximize();
 
 console.log("Wizdler Desktop started!");
