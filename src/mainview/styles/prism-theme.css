@@ -2,10 +2,15 @@
 
 .codejar-wrap {
   height: 100%;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
 }
 
 .codejar-editor {
+  box-sizing: border-box;
   outline: none;
+  padding: 12px 14px;
   white-space: pre;
   word-spacing: normal;
   word-break: normal;
@@ -16,12 +21,14 @@
   overflow: auto;
 }
 
-.codejar-editor.light {
+.codejar-editor.light,
+.code-view.light {
   background: #f3f4f6;
   color: #111827;
 }
 
-.codejar-editor.dark {
+.codejar-editor.dark,
+.code-view.dark {
   color: #f8f8f2;
   background: #272822;
   text-shadow: 0 1px rgba(0, 0, 0, 0.3);
@@ -30,15 +37,21 @@
 .codejar-editor.dark .token.comment,
 .codejar-editor.dark .token.prolog,
 .codejar-editor.dark .token.doctype,
-.codejar-editor.dark .token.cdata {
+.codejar-editor.dark .token.cdata,
+.code-view.dark .token.comment,
+.code-view.dark .token.prolog,
+.code-view.dark .token.doctype,
+.code-view.dark .token.cdata {
   color: #8292a2;
 }
 
-.codejar-editor.dark .token.punctuation {
+.codejar-editor.dark .token.punctuation,
+.code-view.dark .token.punctuation {
   color: #f8f8f2;
 }
 
-.codejar-editor.dark .token.namespace {
+.codejar-editor.dark .token.namespace,
+.code-view.dark .token.namespace {
   opacity: 0.7;
 }
 
@@ -46,12 +59,19 @@
 .codejar-editor.dark .token.tag,
 .codejar-editor.dark .token.constant,
 .codejar-editor.dark .token.symbol,
-.codejar-editor.dark .token.deleted {
+.codejar-editor.dark .token.deleted,
+.code-view.dark .token.property,
+.code-view.dark .token.tag,
+.code-view.dark .token.constant,
+.code-view.dark .token.symbol,
+.code-view.dark .token.deleted {
   color: #f92672;
 }
 
 .codejar-editor.dark .token.boolean,
-.codejar-editor.dark .token.number {
+.codejar-editor.dark .token.number,
+.code-view.dark .token.boolean,
+.code-view.dark .token.number {
   color: #ae81ff;
 }
 
@@ -60,44 +80,103 @@
 .codejar-editor.dark .token.string,
 .codejar-editor.dark .token.char,
 .codejar-editor.dark .token.builtin,
-.codejar-editor.dark .token.inserted {
+.codejar-editor.dark .token.inserted,
+.code-view.dark .token.selector,
+.code-view.dark .token.attr-name,
+.code-view.dark .token.string,
+.code-view.dark .token.char,
+.code-view.dark .token.builtin,
+.code-view.dark .token.inserted {
   color: #a6e22e;
 }
 
 .codejar-editor.dark .token.operator,
 .codejar-editor.dark .token.entity,
 .codejar-editor.dark .token.url,
-.codejar-editor.dark .token.variable {
+.codejar-editor.dark .token.variable,
+.code-view.dark .token.operator,
+.code-view.dark .token.entity,
+.code-view.dark .token.url,
+.code-view.dark .token.variable {
   color: #f8f8f2;
 }
 
 .codejar-editor.dark .token.atrule,
 .codejar-editor.dark .token.attr-value,
 .codejar-editor.dark .token.function,
-.codejar-editor.dark .token.class-name {
+.codejar-editor.dark .token.class-name,
+.code-view.dark .token.atrule,
+.code-view.dark .token.attr-value,
+.code-view.dark .token.function,
+.code-view.dark .token.class-name {
   color: #e6db74;
 }
 
-.codejar-editor.dark .token.keyword {
+.codejar-editor.dark .token.keyword,
+.code-view.dark .token.keyword {
   color: #66d9ef;
 }
 
 .codejar-editor.dark .token.regex,
-.codejar-editor.dark .token.important {
+.codejar-editor.dark .token.important,
+.code-view.dark .token.regex,
+.code-view.dark .token.important {
   color: #fd971f;
 }
 
 .codejar-editor.dark .token.important,
-.codejar-editor.dark .token.bold {
+.codejar-editor.dark .token.bold,
+.code-view.dark .token.important,
+.code-view.dark .token.bold {
   font-weight: bold;
 }
 
-.codejar-editor.dark .token.italic {
+.codejar-editor.dark .token.italic,
+.code-view.dark .token.italic {
   font-style: italic;
 }
 
-.codejar-editor.dark .token.entity {
+.codejar-editor.dark .token.entity,
+.code-view.dark .token.entity {
   cursor: help;
+}
+
+.code-view {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  overflow: auto;
+  tab-size: 2;
+}
+
+.code-view__gutter,
+.code-view__code {
+  margin: 0;
+  white-space: pre;
+}
+
+.code-view__gutter {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 48px;
+  padding: 12px 10px 12px 8px;
+  text-align: right;
+  user-select: none;
+}
+
+.code-view__code {
+  min-width: 0;
+  padding: 12px 14px;
+}
+
+.code-view.light .code-view__gutter {
+  background-color: rgba(15, 23, 42, 0.05);
+  color: #1f2937;
+}
+
+.code-view.dark .code-view__gutter {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #8b949e;
 }
 
 /* Line numbers gutter — the gutter is a sibling of .codejar-editor inside
