@@ -69,6 +69,7 @@ export class InstanceElement extends InstanceGroup {
   minOccurs = 1;
   maxOccurs = 1;
   xsiType: string | null = null;
+  annotations: string[] = [];
 
   constructor(qname: XmlQualifiedName) {
     super();
@@ -80,11 +81,28 @@ export class InstanceElement extends InstanceGroup {
 export type GroupNode = InstanceGroup;
 
 const anyGenerator = { generateValue: () => "anyType" };
+const schemaNs = "http://www.w3.org/2001/XMLSchema";
 
 function createGenerator(dataType: string, _listLength: number, minOccurs = 1): { generateValue: () => string } {
   return {
     generateValue: () => "[" + dataType + (minOccurs === 0 ? "?" : "") + "]",
   };
+}
+
+function normalizeAnnotationText(text: string): string {
+  return text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function sanitizeCommentText(text: string): string {
+  let safe = text.replace(/--/g, "- -");
+  if (safe.endsWith("-")) safe += " ";
+  return safe;
 }
 
 export class XmlSampleGenerator {
@@ -115,6 +133,7 @@ export class XmlSampleGenerator {
     this.instanceElementsProcessed = {};
     this.instanceElementsProcessed[root.id] = root;
     const doc = document.implementation.createDocument(root.qname.ns, root.qname.localName, null);
+    this.processAnnotations(doc.documentElement, root);
     if (root.valueGenerator != null) {
       let value: string;
       if (root.isFixed) value = root.fixedValue;
@@ -186,6 +205,7 @@ export class XmlSampleGenerator {
           this.processGroup(el, g);
         }
       }
+      this.processAnnotations(parentEl, elem);
       parentEl.appendChild(el);
     }
     delete this.instanceElementsProcessed![elem.id];
@@ -225,6 +245,7 @@ export class XmlSampleGenerator {
     const elem = new InstanceElement(new XmlQualifiedName(elemTargetNs ?? "", globalDecl.getAttributeNS(null, "name")!));
     parentEl?.addChild(elem);
     const schemaType = this.getSchemaType(globalDecl, "type");
+    elem.annotations = this.getAnnotations(schemaEl, globalDecl, typeof schemaType === "string" ? undefined : schemaType);
     if (schemaType === this.anyType) {
       elem.valueGenerator = anyGenerator;
     } else if (this.isComplexType(schemaType as Element)) {
@@ -261,7 +282,16 @@ export class XmlSampleGenerator {
     clone.genNil = elem.genNil;
     clone.occurs = occurs;
     clone.child = elem.child;
+    clone.annotations = [...elem.annotations];
     return clone;
+  }
+
+  processAnnotations(parentEl: Element, elem: InstanceElement): void {
+    if (!elem.annotations.length) return;
+    const doc = parentEl.ownerDocument!;
+    for (const annotation of elem.annotations) {
+      parentEl.appendChild(doc.createComment(" " + sanitizeCommentText(annotation) + " "));
+    }
   }
 
   processComplexType(schemaType: Element, elem: InstanceElement): void {
@@ -457,6 +487,26 @@ export class XmlSampleGenerator {
     return undefined;
   }
 
+  getAnnotations(...elements: Array<Element | null | undefined>): string[] {
+    const result: string[] = [];
+    const seen = new Set<string>();
+
+    for (const el of elements) {
+      if (!el) continue;
+      for (const annotation of this.getChildren(el, "annotation")) {
+        for (const doc of this.getChildren(annotation, "documentation")) {
+          const text = normalizeAnnotationText(doc.textContent ?? "");
+          if (text && !seen.has(text)) {
+            seen.add(text);
+            result.push(text);
+          }
+        }
+      }
+    }
+
+    return result;
+  }
+
   findGlobalElement(qname: XmlQualifiedName): Element {
     const key = qname.ns + ":" + qname.localName;
     const el = this.globalElements[key];
@@ -500,12 +550,11 @@ export class XmlSampleGenerator {
   }
 
   getChildren(el: Element, ...tagNames: string[]): Element[] {
-    const ns = "http://www.w3.org/2001/XMLSchema";
     const children = el.childNodes;
     const result: Element[] = [];
     for (let i = 0, n = children.length; i < n; i++) {
       const child = children[i];
-      if (child.nodeType === 1 && (child as Element).namespaceURI === ns) {
+      if (child.nodeType === 1 && (child as Element).namespaceURI === schemaNs) {
         for (let j = 0; j < tagNames.length; j++) {
           if ((child as Element).localName === tagNames[j]) {
             result.push(child as Element);
