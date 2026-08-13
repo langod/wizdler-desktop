@@ -7,17 +7,6 @@ interface SidebarProps {
   onSelectRequest: (req: SavedRequest) => void;
 }
 
-function relativeTime(ts: number): string {
-  const diff = Date.now() - ts;
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
-}
-
 function sortRequests(requests: SavedRequest[]): SavedRequest[] {
   return [...requests].sort((a, b) => {
     if (a.favorited && !b.favorited) return -1;
@@ -58,7 +47,7 @@ export default function Sidebar({ refreshTrigger, onSelectRequest }: SidebarProp
   }, []);
 
   return (
-    <div className="flex w-64 flex-shrink-0 flex-col border-r border-gray-200 bg-gray-50 transition-colors dark:border-gray-700 dark:bg-[#151618]">
+    <div className="flex w-80 flex-shrink-0 flex-col border-r border-gray-200 bg-gray-50 transition-colors dark:border-gray-700 dark:bg-[#151618]">
       <div className="flex items-center justify-between border-b border-gray-200 px-3 py-2 dark:border-gray-700">
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">History</span>
         {requests.length > 0 && (
@@ -85,13 +74,8 @@ export default function Sidebar({ refreshTrigger, onSelectRequest }: SidebarProp
               onClick={() => onSelectRequest(req)}
               className="w-full px-3 py-2 pr-8 text-left text-xs transition-colors hover:bg-gray-100 dark:hover:bg-[#1e1f22]"
             >
-              <div className="flex items-start justify-between gap-1">
-                <span className="flex-1 truncate font-medium text-gray-800 dark:text-gray-200">
-                  {req.serviceName}
-                </span>
-                <span className="flex-shrink-0 text-[10px] text-gray-400 dark:text-gray-500">
-                  {relativeTime(req.createdAt)}
-                </span>
+              <div className="truncate font-medium text-gray-800 dark:text-gray-200">
+                {req.serviceName}
               </div>
               <div className="mt-0.5 flex items-center gap-1">
                 <span
