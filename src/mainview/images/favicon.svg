@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Wizdler Desktop">
+  <defs>
+    <linearGradient id="bg" x1="10" y1="8" x2="54" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff8a2a"/>
+      <stop offset="1" stop-color="#e4511e"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#9a2d12" flood-opacity=".35"/>
+    </filter>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#bg)"/>
+  <g filter="url(#shadow)">
+    <path
+      d="M20 31.8 14.5 37 20 42.2"
+      fill="none"
+      stroke="#fff8f0"
+      stroke-width="4"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M44 31.8 49.5 37 44 42.2"
+      fill="none"
+      stroke="#fff8f0"
+      stroke-width="4"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M37.5 20.5 27 45"
+      fill="none"
+      stroke="#fff8f0"
+      stroke-width="4"
+      stroke-linecap="round"
+    />
+  </g>
+  <circle cx="42.5" cy="17.5" r="5.2" fill="#fff8f0"/>
+  <circle cx="51" cy="12.5" r="2.8" fill="#fff8f0" opacity=".9"/>
+  <circle cx="50.5" cy="23" r="2" fill="#fff8f0" opacity=".75"/>
+</svg>
