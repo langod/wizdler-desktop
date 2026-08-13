@@ -17,6 +17,8 @@ type Screen =
   | { name: "editor"; ctx: OperationContext; initialValues?: Pick<SavedRequest, "method" | "requestUrl" | "headers" | "requestBody"> }
   | { name: "error"; message: string };
 
+const WSDL_HISTORY_LIMIT = 50;
+
 export default function App() {
   const [lastUrl, setLastUrl] = useState("");
   const [screen, setScreen] = useState<Screen | null>(null);
@@ -28,7 +30,7 @@ export default function App() {
 
   const recordWsdlHistory = useCallback(
     (url: string) => {
-      setWsdlHistory((prev) => [url, ...prev.filter((u) => u !== url)].slice(0, 10));
+      setWsdlHistory((prev) => [url, ...prev.filter((u) => u !== url)].slice(0, WSDL_HISTORY_LIMIT));
     },
     [setWsdlHistory],
   );
