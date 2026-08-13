@@ -5,6 +5,7 @@ import { fetchUrl } from "./lib/fetch";
 import { getAllRequests, upsertRequest } from "./lib/db";
 import { useLocalStorage } from "./lib/useLocalStorage";
 import useKeyboardShortcuts from "./lib/useKeyboardShortcuts";
+import { useTheme } from "./lib/ThemeProvider";
 import UrlBar from "./components/UrlBar";
 import WsdlTree from "./components/WsdlTree";
 import SoapEditor from "./components/SoapEditor";
@@ -23,6 +24,7 @@ export default function App() {
   const [lastLoadedWsdl, setLastLoadedWsdl] = useState<{ url: string; wsdl: WsdlData; operations: OperationContext[] } | null>(null);
   const [wsdlHistory, setWsdlHistory] = useLocalStorage<string[]>("wizdler_wsdl_history", []);
   const urlInputRef = useRef<HTMLInputElement>(null);
+  const { toggleTheme } = useTheme();
 
   const recordWsdlHistory = useCallback(
     (url: string) => {
@@ -42,6 +44,7 @@ export default function App() {
 
   useKeyboardShortcuts({
     onFocusUrl: () => urlInputRef.current?.focus(),
+    onToggleTheme: toggleTheme,
     onBack: screen?.name === "editor"
       ? () => {
           const ed = screen as { name: "editor"; ctx: OperationContext };

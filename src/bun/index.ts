@@ -20,42 +20,63 @@ async function getMainViewUrl(): Promise<string> {
 
 const url = await getMainViewUrl();
 
+const PRIMARY_MODIFIER = "CommandOrControl";
+const isMac = process.platform === "darwin";
+
 ApplicationMenu.setApplicationMenu([
-  {
-    submenu: [
-      { role: "hide" },
-      { role: "hideOthers" },
-      { role: "showAll" },
-      { type: "separator" },
-      { role: "quit" },
-    ],
-  },
+  ...(isMac
+    ? [
+        {
+          label: "Wizdler Desktop",
+          submenu: [
+            { role: "hide", accelerator: "Command+H" },
+            { role: "hideOthers", accelerator: "Command+Alt+H" },
+            { role: "showAll" },
+            { type: "separator" },
+            { role: "quit", accelerator: `${PRIMARY_MODIFIER}+Q` },
+          ],
+        },
+      ]
+    : []),
   {
     label: "File",
-    submenu: [{ role: "close" }],
+    submenu: [
+      { role: "close", accelerator: `${PRIMARY_MODIFIER}+W` },
+      ...(!isMac
+        ? [
+            { type: "separator" as const },
+            { role: "quit", accelerator: `${PRIMARY_MODIFIER}+Q` },
+          ]
+        : []),
+    ],
   },
   {
     label: "Edit",
     submenu: [
-      { role: "undo" },
-      { role: "redo" },
+      { role: "undo", accelerator: `${PRIMARY_MODIFIER}+Z` },
+      { role: "redo", accelerator: isMac ? "Command+Shift+Z" : "Ctrl+Y" },
       { type: "separator" },
-      { role: "cut" },
-      { role: "copy" },
-      { role: "paste" },
-      { role: "pasteAndMatchStyle" },
+      { role: "cut", accelerator: `${PRIMARY_MODIFIER}+X` },
+      { role: "copy", accelerator: `${PRIMARY_MODIFIER}+C` },
+      { role: "paste", accelerator: `${PRIMARY_MODIFIER}+V` },
+      { role: "pasteAndMatchStyle", accelerator: `${PRIMARY_MODIFIER}+Shift+V` },
       { role: "delete" },
       { type: "separator" },
-      { role: "selectAll" },
+      { role: "selectAll", accelerator: `${PRIMARY_MODIFIER}+A` },
     ],
   },
   {
     label: "View",
-    submenu: [{ role: "toggleFullScreen" }],
+    submenu: [
+      { role: "toggleFullScreen", accelerator: isMac ? "Command+Ctrl+F" : "F11" },
+    ],
   },
   {
     label: "Window",
-    submenu: [{ role: "minimize" }, { role: "zoom" }],
+    submenu: [
+      { role: "minimize", accelerator: `${PRIMARY_MODIFIER}+M` },
+      { role: "zoom" },
+    ],
   },
 ]);
 

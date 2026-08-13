@@ -3,7 +3,13 @@ import { useEffect, useCallback } from "react";
 type ModKey = "metaKey" | "ctrlKey";
 
 function getModKey(): ModKey {
-  return /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? "metaKey" : "ctrlKey";
+  const platform = navigator.platform || navigator.userAgent;
+  return /Mac|iPod|iPhone|iPad/.test(platform) ? "metaKey" : "ctrlKey";
+}
+
+function hasOnlyModifier(e: KeyboardEvent, mod: ModKey, options?: { shift?: boolean }) {
+  const shift = options?.shift ?? false;
+  return e[mod] && e.shiftKey === shift && !e.altKey;
 }
 
 interface ShortcutOptions {
@@ -39,48 +45,47 @@ export default function useKeyboardShortcuts({
 
       switch (e.key.toLowerCase()) {
         case "enter":
-          if (onGo) {
+          if (hasOnlyModifier(e, mod) && onGo) {
             e.preventDefault();
             onGo();
           }
           break;
 
         case "l":
-          if (!e.shiftKey && onFocusUrl) {
+          if (hasOnlyModifier(e, mod) && onFocusUrl) {
             e.preventDefault();
             onFocusUrl();
           }
           break;
 
         case "t":
-          if (e.shiftKey && onToggleTheme) {
+          if (hasOnlyModifier(e, mod, { shift: true }) && onToggleTheme) {
             e.preventDefault();
             onToggleTheme();
           }
           break;
 
         case "h":
-          if (e.shiftKey && onToggleHeaders) {
+          if (hasOnlyModifier(e, mod, { shift: true }) && onToggleHeaders) {
             e.preventDefault();
             onToggleHeaders();
           }
           break;
 
         case "[":
-          if (e.shiftKey && onTabPrev) {
+          if (hasOnlyModifier(e, mod, { shift: true }) && onTabPrev) {
             e.preventDefault();
             onTabPrev();
           }
           break;
 
         case "]":
-          if (e.shiftKey && onTabNext) {
+          if (hasOnlyModifier(e, mod, { shift: true }) && onTabNext) {
             e.preventDefault();
             onTabNext();
           }
           break;
-
-    }
+      }
     },
     [onGo, onBack, onFocusUrl, onToggleTheme, onToggleHeaders, onTabPrev, onTabNext]
   );
