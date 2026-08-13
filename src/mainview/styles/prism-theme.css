@@ -21,6 +21,22 @@
   overflow: auto;
 }
 
+.codejar-editor,
+.code-view,
+.code-view pre,
+.code-view code,
+.codejar-linenumber {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas,
+    "Liberation Mono", monospace;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.55;
+  letter-spacing: 0;
+  text-shadow: none;
+  -webkit-font-smoothing: antialiased;
+  font-variant-ligatures: none;
+}
+
 .codejar-editor.light,
 .code-view.light {
   background: #f3f4f6;
@@ -29,9 +45,14 @@
 
 .codejar-editor.dark,
 .code-view.dark {
-  color: #f8f8f2;
-  background: #272822;
-  text-shadow: 0 1px rgba(0, 0, 0, 0.3);
+  color: #e5e7eb;
+  background: #1a1b1e;
+}
+
+.codejar-editor.dark,
+.code-view.dark pre,
+.code-view.dark code {
+  color: #e5e7eb;
 }
 
 .codejar-editor.dark .token.comment,
@@ -42,12 +63,12 @@
 .code-view.dark .token.prolog,
 .code-view.dark .token.doctype,
 .code-view.dark .token.cdata {
-  color: #8292a2;
+  color: #6b7280;
 }
 
 .codejar-editor.dark .token.punctuation,
 .code-view.dark .token.punctuation {
-  color: #f8f8f2;
+  color: #9ca3af;
 }
 
 .codejar-editor.dark .token.namespace,
@@ -65,14 +86,14 @@
 .code-view.dark .token.constant,
 .code-view.dark .token.symbol,
 .code-view.dark .token.deleted {
-  color: #f92672;
+  color: #93c5fd;
 }
 
 .codejar-editor.dark .token.boolean,
 .codejar-editor.dark .token.number,
 .code-view.dark .token.boolean,
 .code-view.dark .token.number {
-  color: #ae81ff;
+  color: #c4b5fd;
 }
 
 .codejar-editor.dark .token.selector,
@@ -87,7 +108,7 @@
 .code-view.dark .token.char,
 .code-view.dark .token.builtin,
 .code-view.dark .token.inserted {
-  color: #a6e22e;
+  color: #7dd3fc;
 }
 
 .codejar-editor.dark .token.operator,
@@ -98,7 +119,7 @@
 .code-view.dark .token.entity,
 .code-view.dark .token.url,
 .code-view.dark .token.variable {
-  color: #f8f8f2;
+  color: #d1d5db;
 }
 
 .codejar-editor.dark .token.atrule,
@@ -109,19 +130,19 @@
 .code-view.dark .token.attr-value,
 .code-view.dark .token.function,
 .code-view.dark .token.class-name {
-  color: #e6db74;
+  color: #86efac;
 }
 
 .codejar-editor.dark .token.keyword,
 .code-view.dark .token.keyword {
-  color: #66d9ef;
+  color: #60a5fa;
 }
 
 .codejar-editor.dark .token.regex,
 .codejar-editor.dark .token.important,
 .code-view.dark .token.regex,
 .code-view.dark .token.important {
-  color: #fd971f;
+  color: #fbbf24;
 }
 
 .codejar-editor.dark .token.important,

@@ -40,7 +40,9 @@ export default function SoapEditor({ ctx, onBack, initialValues, onSave }: SoapE
   const [responseBody, setResponseBody] = useState("");
   const [activeTab, setActiveTab] = useState("request");
   const [status, setStatus] = useState("");
+  const [isRequestLoading, setIsRequestLoading] = useState(false);
   const urlInputRef = useRef<HTMLInputElement>(null);
+  const requestInFlightRef = useRef(false);
 
   useEffect(() => {
     const r = generateRequest(ctx);
@@ -51,6 +53,8 @@ export default function SoapEditor({ ctx, onBack, initialValues, onSave }: SoapE
     if (iv?.headers) setWlHeaders(iv.headers);
     setResponseBody("");
     setStatus("");
+    requestInFlightRef.current = false;
+    setIsRequestLoading(false);
     setActiveTab("request");
   }, [ctx, initialValues, setWlHeaders]);
 
@@ -86,7 +90,11 @@ export default function SoapEditor({ ctx, onBack, initialValues, onSave }: SoapE
   const handleGo = useCallback(
     async (e?: FormEvent) => {
       e?.preventDefault();
-      setStatus("Loading...");
+      if (requestInFlightRef.current) return;
+
+      requestInFlightRef.current = true;
+      setIsRequestLoading(true);
+      setStatus("Sending request...");
       setActiveTab("response");
       setResponseBody("");
 
@@ -131,6 +139,9 @@ export default function SoapEditor({ ctx, onBack, initialValues, onSave }: SoapE
           responseBody: "",
           status: "Error.",
         });
+      } finally {
+        requestInFlightRef.current = false;
+        setIsRequestLoading(false);
       }
     },
     [url, method, builtHeaders, requestBody, wlHeaders, onSave, ctx]
@@ -168,10 +179,10 @@ export default function SoapEditor({ ctx, onBack, initialValues, onSave }: SoapE
       id: "response",
       label: "Response",
       content: (
-        <XmlEditor
-          value={responseBody}
-          readOnly
-        />
+        <div className="relative h-full">
+          <XmlEditor value={responseBody} readOnly />
+          {isRequestLoading && <ResponseLoadingOverlay />}
+        </div>
       ),
     },
   ];
@@ -201,9 +212,14 @@ export default function SoapEditor({ ctx, onBack, initialValues, onSave }: SoapE
         />
         <button
           onClick={handleGo}
-          className="rounded bg-blue-500 px-3 py-1 text-sm text-white transition-colors hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-500"
+          disabled={isRequestLoading}
+          aria-busy={isRequestLoading}
+          className="inline-flex min-w-[4.5rem] items-center justify-center gap-2 rounded bg-blue-500 px-3 py-1 text-sm text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-blue-600 dark:hover:bg-blue-500"
         >
-          Go
+          {isRequestLoading && (
+            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+          )}
+          {isRequestLoading ? "Sending" : "Go"}
         </button>
         <button
           onClick={onBack}
@@ -328,6 +344,17 @@ export default function SoapEditor({ ctx, onBack, initialValues, onSave }: SoapE
           onTabChange={setActiveTab}
           status={status}
         />
+      </div>
+    </div>
+  );
+}
+
+function ResponseLoadingOverlay() {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center bg-white/80 text-gray-600 backdrop-blur-[1px] dark:bg-[#1a1b1e]/80 dark:text-gray-300">
+      <div className="flex items-center gap-3 rounded border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <span className="h-4 w-4 animate-spin rounded-full border-2 border-blue-200 border-t-blue-600 dark:border-blue-900 dark:border-t-blue-300" />
+        <span>Sending request...</span>
       </div>
     </div>
   );
