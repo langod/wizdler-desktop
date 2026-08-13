@@ -49,6 +49,10 @@ function formatXml(doc: XMLDocument | null): string {
   return vkbeautify.xml(text.replace(/ xmlns="\0"/g, ' xmlns=""'));
 }
 
+function getRequestUrlFromLoadedWsdlUrl(wsdlUrl: string): string {
+  return wsdlUrl.trim().replace(/[?&](?:single)?wsdl=?$/i, "");
+}
+
 function resolveNS(node: Node, name: string): QualifiedName {
   const resolver = (node.ownerDocument ?? node as Document).createNSResolver(node);
   const index = name.indexOf(":");
@@ -133,6 +137,7 @@ function generateSoapMessage(ctx: OperationContext, soapVersion: "soap" | "soap1
 }
 
 export function generateRequest(ctx: OperationContext): GeneratedRequest {
+  const loadedWsdlRequestUrl = getRequestUrlFromLoadedWsdlUrl(ctx.wsdl.url);
   const request: GeneratedRequest = {
     method: "POST",
     url: "",
@@ -142,7 +147,7 @@ export function generateRequest(ctx: OperationContext): GeneratedRequest {
 
   if (ctx.operation?.input) {
     if (ctx.operation.soap12) {
-      request.url = ctx.port.soap12?.address ?? "";
+      request.url = loadedWsdlRequestUrl || ctx.port.soap12?.address || "";
       if (ctx.operation.soap12.hasOwnProperty("action")) {
         request.headers["SOAPAction"] = ctx.operation.soap12.action;
         request.headers["Content-Type"] = "application/soap+xml; charset=\"utf-8\"";
@@ -153,7 +158,7 @@ export function generateRequest(ctx: OperationContext): GeneratedRequest {
         request.body = (e as Error).message;
       }
     } else if (ctx.operation.soap) {
-      request.url = ctx.port.soap?.address ?? "";
+      request.url = loadedWsdlRequestUrl || ctx.port.soap?.address || "";
       if (ctx.operation.soap.hasOwnProperty("action")) {
         request.headers["SOAPAction"] = ctx.operation.soap.action;
         request.headers["Content-Type"] = "text/xml; charset=\"utf-8\"";
@@ -166,7 +171,7 @@ export function generateRequest(ctx: OperationContext): GeneratedRequest {
     } else if (ctx.operation.http) {
       const httpBinding = ctx.binding.http;
       request.method = httpBinding?.verb ?? "GET";
-      const portAddress = ctx.port.http?.address ?? "";
+      const portAddress = loadedWsdlRequestUrl || ctx.port.http?.address || "";
       const opLocation = ctx.operation.http.location ?? "";
       request.url = portAddress + opLocation;
     }
