@@ -205,6 +205,8 @@
    the inline styles set by codejar-linenumbers for proper contrast. */
 .codejar-linenumbers-inner-wrap {
   background: transparent !important;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .codejar-linenumbers {
