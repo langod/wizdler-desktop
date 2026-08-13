@@ -43,11 +43,5 @@ export async function rpcRequest(method: string, params: unknown): Promise<unkno
       params,
       hostWebviewId: webviewId,
     }));
-    setTimeout(() => {
-      if (pending.has(id)) {
-        pending.delete(id);
-        reject(new Error(`RPC request timeout: ${method}`));
-      }
-    }, 30000);
   });
 }
